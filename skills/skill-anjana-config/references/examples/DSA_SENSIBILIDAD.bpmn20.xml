@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="DC" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:yaoqiang="http://bpmn.sourceforge.net" id="_1613044313489" name="" targetNamespace="DC" exporter="Yaoqiang BPMN Editor" exporterVersion="5.3" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL http://bpmn.sourceforge.net/schemas/BPMN20.xsd">
+  <process id="DSA_SENSIBILIDAD" name="DSA_SENSIBILIDAD" processType="None" isClosed="false" isExecutable="true">
+    <extensionElements>
+      <yaoqiang:description />
+      <yaoqiang:pageFormat height="841.8897637795276" imageableHeight="831.8897637795276" imageableWidth="588.1102362204724" imageableX="5.0" imageableY="5.0" orientation="0" width="598.1102362204724" />
+      <yaoqiang:page background="#FFFFFF" horizontalCount="1" verticalCount="1" />
+    </extensionElements>
+    <startEvent id="Event_Start" name="Start">
+      <outgoing>Flow_02ps750</outgoing>
+      <outputSet />
+    </startEvent>
+    <serviceTask id="FINAL_EXEC" name="End" implementation="##WebService" activiti:class="com.anjana.hermes.functionalities.LastExecutionJavaDelegate">
+      <incoming>Flow_0hf64pz</incoming>
+      <incoming>Flow_02u4jpa</incoming>
+      <outgoing>Flow_4</outgoing>
+    </serviceTask>
+    <serviceTask id="SEND_CREATOR" name="Creator notification" implementation="##WebService" activiti:class="com.anjana.hermes.functionalities.SentNotificationJavaDelegate">
+      <extensionElements>
+        <activiti:field name="notificationCode" stringValue="5" />
+      </extensionElements>
+      <incoming>Flow_4</incoming>
+      <outgoing>Flow_5</outgoing>
+    </serviceTask>
+    <endEvent id="Event_End">
+      <incoming>Flow_5</incoming>
+      <inputSet />
+    </endEvent>
+    <sequenceFlow id="Flow_4" sourceRef="FINAL_EXEC" targetRef="SEND_CREATOR" />
+    <sequenceFlow id="Flow_5" sourceRef="SEND_CREATOR" targetRef="Event_End" />
+    <serviceTask id="FINAL_REJECT_EXEC" name="Reject" implementation="##WebService" activiti:class="com.anjana.hermes.functionalities.LastExecutionJavaDelegate">
+      <incoming>Flow_0rl32j6</incoming>
+      <outgoing>Flow_7</outgoing>
+    </serviceTask>
+    <serviceTask id="CANCEL_EXEC" name="Cancel" implementation="##WebService" activiti:class="com.anjana.hermes.functionalities.CancelTaskWorkflowDelegate">
+      <incoming>Flow_7</incoming>
+      <outgoing>Flow_8</outgoing>
+    </serviceTask>
+    <serviceTask id="SEND_USER" name="Notification for the Responsible" implementation="##WebService" activiti:class="com.anjana.hermes.functionalities.SentNotificationJavaDelegate">
+      <extensionElements>
+        <activiti:field name="notificationCode" stringValue="5" />
+      </extensionElements>
+      <incoming>Flow_8</incoming>
+      <outgoing>Flow_9</outgoing>
+    </serviceTask>
+    <endEvent id="Event_reject_End">
+      <incoming>Flow_9</incoming>
+      <inputSet />
+    </endEvent>
+    <sequenceFlow id="Flow_7" sourceRef="FINAL_REJECT_EXEC" targetRef="CANCEL_EXEC" />
+    <sequenceFlow id="Flow_8" sourceRef="CANCEL_EXEC" targetRef="SEND_USER" />
+    <sequenceFlow id="Flow_9" sourceRef="SEND_USER" targetRef="Event_reject_End" />
+    <userTask id="Activity_1w4r5i4" name="Sensibilidad &#34;Publica&#34; o &#34;Interna&#34;: Validación automática">
+      <extensionElements>
+        <activiti:field name="automatic">
+          <activiti:string>true</activiti:string>
+        </activiti:field>
+        <activiti:field name="validatorRole">
+          <activiti:string>automatic</activiti:string>
+        </activiti:field>
+      </extensionElements>
+      <incoming>Flow_0nwn9ny</incoming>
+      <outgoing>Flow_0hf64pz</outgoing>
+      <multiInstanceLoopCharacteristics activiti:collection="MODULE_ORGANIZATIONAL_UNIT">
+        <completionCondition xsi:type="tFormalExpression">${ACCEPTED != 'true'}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="Flow_0hf64pz" sourceRef="Activity_1w4r5i4" targetRef="FINAL_EXEC">
+      <conditionExpression xsi:type="tFormalExpression">${ACCEPTED == 'true'}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_02ps750" sourceRef="Event_Start" targetRef="Gateway_01khb6y" />
+    <exclusiveGateway id="Gateway_01khb6y" name="¿SENSIBILIDAD?">
+      <incoming>Flow_02ps750</incoming>
+      <outgoing>Flow_0nwn9ny</outgoing>
+      <outgoing>Flow_1epdite</outgoing>
+    </exclusiveGateway>
+    <sequenceFlow id="Flow_0nwn9ny" name="Publica o Interna" sourceRef="Gateway_01khb6y" targetRef="Activity_1w4r5i4">
+      <conditionExpression xsi:type="tFormalExpression">${nivelSensibilidadDsa== 'Público' || nivelSensibilidadDsa== 'Interno'}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_1epdite" name="Confidencial o Restringido" sourceRef="Gateway_01khb6y" targetRef="Activity_16zd687">
+      <conditionExpression xsi:type="tFormalExpression">${nivelSensibilidadDsa== 'Confidencial' || nivelSensibilidadDsa== 'Restringido'}</conditionExpression>
+    </sequenceFlow>
+    <userTask id="Activity_16zd687" name="Sensibilidad &#34;Confidencial&#34; o &#34;Restringida&#34;: Validación  del Propietario">
+      <extensionElements>
+        <activiti:field name="validatorRole" stringValue="DATA_OWNER" />
+        <activiti:field name="notificationCode">
+          <activiti:string>20</activiti:string>
+        </activiti:field>
+      </extensionElements>
+      <incoming>Flow_1epdite</incoming>
+      <outgoing>Flow_02u4jpa</outgoing>
+      <outgoing>Flow_0rl32j6</outgoing>
+      <multiInstanceLoopCharacteristics activiti:collection="MODULE_ORGANIZATIONAL_UNIT">
+        <completionCondition xsi:type="tFormalExpression">${ACCEPTED != 'true'}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="Flow_02u4jpa" name="OK" sourceRef="Activity_16zd687" targetRef="FINAL_EXEC">
+      <conditionExpression xsi:type="tFormalExpression">${ACCEPTED == 'true'}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_0rl32j6" name="KO" sourceRef="Activity_16zd687" targetRef="FINAL_REJECT_EXEC">
+      <conditionExpression xsi:type="tFormalExpression">${ACCEPTED == 'false'}</conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="Yaoqiang_Diagram-DSA_SENSIBILIDAD" name="Untitled Diagram" resolution="96">
+    <bpmndi:BPMNPlane bpmnElement="DSA_SENSIBILIDAD">
+      <bpmndi:BPMNEdge id="Flow_0rl32j6_di" bpmnElement="Flow_0rl32j6">
+        <di:waypoint x="410" y="332" />
+        <di:waypoint x="597" y="332" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="495" y="353" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02u4jpa_di" bpmnElement="Flow_02u4jpa">
+        <di:waypoint x="410" y="310" />
+        <di:waypoint x="550" y="310" />
+        <di:waypoint x="710" y="97" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="495" y="273" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1epdite_di" bpmnElement="Flow_1epdite">
+        <di:waypoint x="230" y="205" />
+        <di:waypoint x="230" y="310" />
+        <di:waypoint x="310" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="245" y="226" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nwn9ny_di" bpmnElement="Flow_0nwn9ny">
+        <di:waypoint x="230" y="155" />
+        <di:waypoint x="230" y="70" />
+        <di:waypoint x="400" y="70" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="238" y="93" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02ps750_di" bpmnElement="Flow_02ps750">
+        <di:waypoint x="156" y="180" />
+        <di:waypoint x="205" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hf64pz_di" bpmnElement="Flow_0hf64pz">
+        <di:waypoint x="500" y="70" />
+        <di:waypoint x="707" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Yaoqiang-Flow_9" bpmnElement="Flow_9">
+        <di:waypoint x="982" y="315" />
+        <di:waypoint x="1055" y="315" />
+        <di:waypoint x="1055" y="264" />
+        <di:waypoint x="1127" y="264" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1094" y="253.58" width="6" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Yaoqiang-Flow_8" bpmnElement="Flow_8">
+        <di:waypoint x="812" y="310" />
+        <di:waypoint x="855" y="310" />
+        <di:waypoint x="855" y="315" />
+        <di:waypoint x="897" y="315" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="949" y="253.58" width="6" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Yaoqiang-Flow_7" bpmnElement="Flow_7">
+        <di:waypoint x="682" y="315" />
+        <di:waypoint x="705" y="315" />
+        <di:waypoint x="705" y="310" />
+        <di:waypoint x="727" y="310" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="804" y="253.58" width="6" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Yaoqiang-Flow_5" bpmnElement="Flow_5">
+        <di:waypoint x="922" y="70" />
+        <di:waypoint x="1025" y="70" />
+        <di:waypoint x="1025" y="169" />
+        <di:waypoint x="1127" y="169" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="949" y="158.58" width="6" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Yaoqiang-Flow_4" bpmnElement="Flow_4">
+        <di:waypoint x="792" y="70" />
+        <di:waypoint x="837" y="70" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="804" y="158.58" width="6" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Yaoqiang-Event_Start" bpmnElement="Event_Start">
+        <dc:Bounds x="124" y="164" width="32" height="32" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="128" y="204" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Yaoqiang-FINAL_EXEC" bpmnElement="FINAL_EXEC">
+        <dc:Bounds x="707" y="42" width="85" height="55" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="722.5" y="160.58" width="24" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Yaoqiang-SEND_CREATOR" bpmnElement="SEND_CREATOR">
+        <dc:Bounds x="837" y="42" width="85" height="55" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="850.5" y="153.08" width="58" height="34.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Yaoqiang-Event_End" bpmnElement="Event_End">
+        <dc:Bounds x="1127" y="152.5" width="32" height="32" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1140" y="192.58" width="6" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Yaoqiang-FINAL_REJECT_EXEC" bpmnElement="FINAL_REJECT_EXEC">
+        <dc:Bounds x="597" y="287" width="85" height="55" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="716.5" y="255.58" width="36" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Yaoqiang-CANCEL_EXEC" bpmnElement="CANCEL_EXEC">
+        <dc:Bounds x="727" y="282" width="85" height="55" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="860" y="255.58" width="39" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Yaoqiang-SEND_USER" bpmnElement="SEND_USER">
+        <dc:Bounds x="897" y="287" width="85" height="55" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="986.5" y="240.58" width="76" height="49.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Yaoqiang-Event_reject_End" bpmnElement="Event_reject_End">
+        <dc:Bounds x="1127" y="247.5" width="32" height="32" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1140" y="287.58" width="6" height="19.84" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_073de3k_di" bpmnElement="Activity_1w4r5i4">
+        <dc:Bounds x="400" y="30" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_01khb6y_di" bpmnElement="Gateway_01khb6y" isMarkerVisible="true">
+        <dc:Bounds x="205" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="264.5" y="173" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0dg6lwn_di" bpmnElement="Activity_16zd687">
+        <dc:Bounds x="310" y="270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
